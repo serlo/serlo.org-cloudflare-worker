@@ -149,9 +149,7 @@ async function getGeogebraThumbnail(url: URL) {
 
     const thumbnailUrl = data.value.responses.response.item.previewUrl
 
-    const imgRes = await fetch(thumbnailUrl, {
-      cf: { cacheTtl: 24 * 60 * 60, cacheEveything: true },
-    } as unknown as RequestInit)
+    const imgRes = await fetch(thumbnailUrl)
     if (isImageResponse(imgRes)) return imgRes
   } catch (e) {
     // JSON cannot be parsed or preview url cannot be parsed
@@ -167,7 +165,11 @@ async function getWikimediaThumbnail(url: URL) {
   )
   const previewImageUrl = `https://upload.wikimedia.org/wikipedia/commons/thumb/${filenameWithPath}/800px--${filename}.jpg`
 
-  const imgRes = await fetch(previewImageUrl)
+  // note: this adds manual caching settings,
+  // since wikimedia does not return a max - age setting that cf can adopt
+  const imgRes = await fetch(previewImageUrl, {
+    cf: { cacheTtl: 24 * 60 * 60, cacheEveything: true }, // TODO: disable `cacheEverything` when blocked image is working again
+  } as unknown as RequestInit)
   if (isImageResponse(imgRes)) return imgRes
 
   return getPlaceholder()
